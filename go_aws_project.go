@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/aws/aws-cdk-go/awscdk/v2"
-	// "github.com/aws/aws-cdk-go/awscdk/v2/awssqs"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 )
@@ -18,12 +18,13 @@ func NewGoAwsProjectStack(scope constructs.Construct, id string, props *GoAwsPro
 	}
 	stack := awscdk.NewStack(scope, &id, &sprops)
 
-	// The code that defines your stack goes here
+	lambdaProps := &awslambda.FunctionProps{
+		Runtime: awslambda.Runtime_PROVIDED_AL2023(),
+		Handler: jsii.String("main"),
+		Code:    awslambda.AssetCode_FromAsset(jsii.String("lambda/function.zip"), nil),
+	}
 
-	// example resource
-	// queue := awssqs.NewQueue(stack, jsii.String("GoAwsProjectQueue"), &awssqs.QueueProps{
-	// 	VisibilityTimeout: awscdk.Duration_Seconds(jsii.Number(300)),
-	// })
+	awslambda.NewFunction(stack, jsii.String("myLambdaFunction"), lambdaProps)
 
 	return stack
 }
