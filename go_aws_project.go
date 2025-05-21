@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/aws/aws-cdk-go/awscdk/v2"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsdynamodb"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
@@ -18,13 +19,26 @@ func NewGoAwsProjectStack(scope constructs.Construct, id string, props *GoAwsPro
 	}
 	stack := awscdk.NewStack(scope, &id, &sprops)
 
+	// create DB table here
+	tableProps := &awsdynamodb.TableProps{
+		PartitionKey: &awsdynamodb.Attribute{
+			Name: jsii.String("username"),
+			Type: awsdynamodb.AttributeType_STRING,
+		},
+		TableName: jsii.String("userTable"),
+	}
+	table := awsdynamodb.NewTable(stack, jsii.String("myUserTable"), tableProps)
+
+	// create lambda function
 	lambdaProps := &awslambda.FunctionProps{
 		Runtime: awslambda.Runtime_PROVIDED_AL2023(),
 		Handler: jsii.String("main"),
 		Code:    awslambda.AssetCode_FromAsset(jsii.String("lambda/function.zip"), nil),
 	}
+	myFunction := awslambda.NewFunction(stack, jsii.String("myLambdaFunction"), lambdaProps)
 
-	awslambda.NewFunction(stack, jsii.String("myLambdaFunction"), lambdaProps)
+	// grant lambda permissions to the table
+	table.GrantReadWriteData(myFunction)
 
 	return stack
 }
