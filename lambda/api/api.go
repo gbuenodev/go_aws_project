@@ -19,6 +19,13 @@ func NewApiHandler(userStore store.UserStore) ApiHandler {
 	}
 }
 
+func ProtectedHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	return events.APIGatewayProxyResponse{
+		Body:       "This is a secret path",
+		StatusCode: http.StatusOK,
+	}, nil
+}
+
 func (api ApiHandler) RegisterUserHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var registerUser store.RegisterUser
 
@@ -105,8 +112,17 @@ func (api ApiHandler) LoginUser(request events.APIGatewayProxyRequest) (events.A
 		}, nil
 	}
 
+	accessToken, err := store.CreateToken(user)
+	if err != nil {
+		return events.APIGatewayProxyResponse{
+			Body:       "Internal server error",
+			StatusCode: http.StatusInternalServerError,
+		}, err
+	}
+	sucessMsg := fmt.Sprintf(`{"access_token": "%s"}`, accessToken)
+
 	return events.APIGatewayProxyResponse{
-		Body:       "Sucessfully logged in",
+		Body:       sucessMsg,
 		StatusCode: http.StatusOK,
 	}, nil
 }

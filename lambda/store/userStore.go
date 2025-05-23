@@ -1,6 +1,12 @@
 package store
 
 import (
+	"fmt"
+	"lambda_func/utils"
+	"os"
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -39,4 +45,33 @@ func NewUser(registerUser RegisterUser) (User, error) {
 func ValidatePassword(hashedPassword, plaintextPassword string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plaintextPassword))
 	return err == nil
+}
+
+func CreateToken(user User) (string, error) {
+	secretArn := os.Getenv("JWT_SECRET_ARN")
+	if secretArn == "" {
+		return "", fmt.Errorf("JWT_SECRET_ARN is not set")
+	}
+
+	jwtSecret, err := utils.FetchJWTSecret(secretArn)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch JWT secret: %w", err)
+	}
+
+	now := time.Now()
+	validUntil := now.Add(time.Hour * 1).Unix()
+
+	claims := jwt.MapClaims{
+		"user":    user.Username,
+		"expires": validUntil,
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	tokenString, err := token.SignedString([]byte(jwtSecret))
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
 }

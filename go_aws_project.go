@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsapigateway"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsdynamodb"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awssecretsmanager"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 )
@@ -63,6 +64,26 @@ func NewGoAwsProjectStack(scope constructs.Construct, id string, props *GoAwsPro
 	registerRoute.AddMethod(jsii.String("POST"), integration, nil)
 	loginRoute := api.Root().AddResource(jsii.String("login"), nil)
 	loginRoute.AddMethod(jsii.String("POST"), integration, nil)
+	protectedRoute := api.Root().AddResource(jsii.String("protected"), nil)
+	protectedRoute.AddMethod(jsii.String("GET"), integration, nil)
+
+	// jwt secret
+	secretProps := &awssecretsmanager.SecretProps{
+		SecretName:  jsii.String("jwtSigningSecret"),
+		Description: jsii.String("Secret key for signing JWT tokens"),
+		GenerateSecretString: &awssecretsmanager.SecretStringGenerator{
+			SecretStringTemplate: jsii.String(`{"key":""}`),
+			GenerateStringKey:    jsii.String("key"),
+			PasswordLength:       jsii.Number(32),
+		},
+	}
+	jwtSecret := awssecretsmanager.NewSecret(stack, jsii.String("myJWTSecret"), secretProps)
+
+	// grant secret read access to lambda
+	jwtSecret.GrantRead(myFunction.Role(), &[]*string{jsii.String("AWSCURRENT")})
+
+	// pass the secret ARN as env to lambda
+	myFunction.AddEnvironment(jsii.String("JWT_SECRET_ARN"), jwtSecret.SecretArn(), nil)
 
 	return stack
 }
