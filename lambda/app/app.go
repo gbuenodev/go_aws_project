@@ -2,7 +2,7 @@ package app
 
 import (
 	"lambda_func/api"
-	"lambda_func/database"
+	"lambda_func/store"
 )
 
 type App struct {
@@ -10,8 +10,8 @@ type App struct {
 }
 
 func NewApp() App {
-	db := database.NewDynamoDBClient()
-	apiHandler := api.NewApiHandler(db)
+	userStore := store.NewDynamoDBClient()
+	apiHandler := api.NewApiHandler(userStore)
 
 	return App{
 		ApiHandler: apiHandler,
