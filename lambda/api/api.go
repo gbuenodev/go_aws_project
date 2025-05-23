@@ -77,7 +77,7 @@ func (api ApiHandler) RegisterUserHandler(request events.APIGatewayProxyRequest)
 func (api ApiHandler) LoginUser(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	type LoginRequest struct {
 		Username string `json:"username"`
-		Password string `json:password"`
+		Password string `json:"password"`
 	}
 
 	var loginRequest LoginRequest
