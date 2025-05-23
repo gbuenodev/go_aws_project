@@ -100,8 +100,8 @@ func (api ApiHandler) LoginUser(request events.APIGatewayProxyRequest) (events.A
 
 	if !store.ValidatePassword(user.PasswordHash, loginRequest.Password) {
 		return events.APIGatewayProxyResponse{
-			Body:       "Invalid credentials",
-			StatusCode: http.StatusBadRequest,
+			Body:       "Invalid login credentials",
+			StatusCode: http.StatusUnauthorized,
 		}, nil
 	}
 

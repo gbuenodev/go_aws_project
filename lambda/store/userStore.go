@@ -15,7 +15,7 @@ type RegisterUser struct {
 
 type User struct {
 	Username     string `json:"username"`
-	PasswordHash string `json:"passwordHash"`
+	PasswordHash string `json:"password"`
 }
 
 type UserStore interface {
